@@ -31,10 +31,20 @@ docs = text_splitter.split_documents(data)
 print(docs[0])
 
 # Create the vector store
-vector_search = MongoDBAtlasVectorSearch.from_documents(
-    documents = docs,
-    embedding = OpenAIEmbeddings(disallowed_special=()),
-    collection = atlas_collection,
-    index_name = vector_search_index
-)
+# vector_search = MongoDBAtlasVectorSearch.from_documents(
+#     documents = docs,
+#     embedding = OpenAIEmbeddings(disallowed_special=()),
+#     collection = atlas_collection,
+#     index_name = vector_search_index
+# )
 
+vector_search = MongoDBAtlasVectorSearch.from_connection_string(
+    connection_string=ATLAS_CONNECTION_STRING,
+    namespace="test.vector",
+    embedding=OpenAIEmbeddings(disallowed_special=()),
+    index_name=vector_search_index
+)  
+
+query = "MongoDB Atlas security"
+results = vector_search.similarity_search(query)
+pprint.pprint(results)
