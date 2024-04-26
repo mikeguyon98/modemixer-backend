@@ -1,66 +1,34 @@
-from fastapi import APIRouter, HTTPException
-from app.models import Item, Collection
-from mongoengine.errors import NotUniqueError, ValidationError
-from pydantic import BaseModel
+from fastapi import APIRouter, Query
+from typing import List, Union
+from app.models import ItemModel, CollectionModel
+from app.services.ItemService import ItemService
+from app.services.CollectionService import CollectionService
 
 router = APIRouter()
 
-class ItemModel(BaseModel):
-    title: str
-    description: str = None
-    price: float
-    in_stock: bool = True
-    collection: str = None
-
-class CollectionModel(BaseModel):
-    name: str
-    description: str = None
-
-@router.post("/items/", response_model=ItemModel)
+@router.post("/items", response_model=ItemModel)
 async def create_item(item: ItemModel):
-    try:
-        item_obj = Item(**item.dict()).save()
-        return item_obj
-    except NotUniqueError:
-        raise HTTPException(status_code=400, detail="Item with this title already exists")
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    item_dict = item.model_dump()
+    return ItemService.create_item(item_dict)
+
+@router.get("/items", response_model=Union[List[ItemModel], ItemModel])
+async def read_item(item_id: str = Query(None, alias="item_id"), collection_id: str = Query(None, alias="collection_id")):
+    if item_id:
+        return ItemService.read_item_by_id(item_id)
+    elif collection_id:
+        return ItemService.read_items_by_collection(collection_id)
+    else:
+        return ItemService.read_all_items()
     
-@router.get("/items/", response_model=list[ItemModel])
-async def read_items():
-    items = Item.objects()
-    return items
-
-@router.get("/items/{item_id}")
-async def read_item(item_id: str):
-    item = Item.objects(id=item_id).first()
-    if item is None:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return item
-
-@router.get("/items/collection/{collection_id}")
-async def read_items_by_collection(collection_id: str):
-    items = Item.objects(collection=collection_id)
-    return items
-
-@router.post("/collections/", response_model=CollectionModel)
+@router.post("/collections", response_model=CollectionModel)
 async def create_collection(collection: CollectionModel):
-    try:
-        collection_obj = Collection(**collection.dict()).save()
-        return collection_obj
-    except NotUniqueError:
-        raise HTTPException(status_code=400, detail="Collection with this name already exists")
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    
-@router.get("/collections/", response_model=list[CollectionModel])
-async def read_collections():
-    collections = Collection.objects()
-    return collections
+    collection_dict = collection.model_dump()
+    return CollectionService.create_collection(collection_dict)
 
-@router.get("/collections/{collection_id}")
-async def read_collection(collection_id: str):
-    collection = Collection.objects(id=collection_id).first()
-    if collection is None:
-        raise HTTPException(status_code=404, detail="Collection not found")
-    return collection
+@router.get("/collections", response_model=Union[List[CollectionModel], CollectionModel])
+async def read_collection(collection_id: str = Query(None, alias="collection_id")):
+    if collection_id:
+        return CollectionService.read_collection_by_id(collection_id)
+    else:
+        return CollectionService.read_all_collections()
+    
