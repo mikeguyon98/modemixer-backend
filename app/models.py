@@ -1,21 +1,28 @@
 # app/models.py
-from mongoengine import Document, StringField, DateField
 from datetime import datetime
+from pydantic import BaseModel
+from typing import List, Optional
 
-class Collection(Document):
-    name = StringField(required=True)
-    description = StringField()
+class CollectionModel(BaseModel):
+    name: str
+    description: str = None
+    image_url: str = None
+    created_at: datetime = datetime.now()
+    id: Optional[str] = None
 
-class Item(Document):
-    title = StringField(required=True)
-    description = StringField()
-    collection = StringField()  # Reference to Collection if needed
-    tech_pack = StringField()
+class ItemModel(BaseModel):
+    title: str
+    description: str = None
+    collection: str = None
+    image_urls: List[str] = []
+    collection: str = None
+    created_at: datetime = datetime.now()
+    id: Optional[str] = None
 
-class MensFashionReferences(Document):
-    image_url = StringField(required=True)
-    date = DateField(default=datetime.now)
+class MensFashionReferences(BaseModel):
+    image_url: str
+    created_at: datetime = datetime.now()
 
-class WomansFashionReferences(Document):
-    image_url = StringField(required=True)
-    date = DateField(default=datetime.now)
+class WomansFashionReferences(BaseModel):
+    image_url :str
+    created_at: datetime = datetime.now()
