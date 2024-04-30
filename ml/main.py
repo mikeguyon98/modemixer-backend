@@ -23,7 +23,9 @@ atlas_collection = client[db_name][collection_name]
 vector_search_index = "vector_index"
 
 # Load the PDF
-loader = PyPDFLoader("https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP")
+loader = PyPDFLoader(
+    "https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP"
+)
 data = loader.load()
 # Split PDF into documents
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=20)
@@ -44,11 +46,12 @@ print(docs[0])
 #     namespace="test.vector",
 #     embedding=OpenAIEmbeddings(disallowed_special=()),
 #     index_name=vector_search_index
-# )  
+# )
 
 
-
-vector_search = MongoVectorStore(ATLAS_CONNECTION_STRING, db_name, collection_name, vector_search_index).initialize()
+vector_search = MongoVectorStore(
+    ATLAS_CONNECTION_STRING, db_name, collection_name, vector_search_index
+).initialize()
 
 query = "MongoDB Atlas security"
 results = vector_search.similarity_search(query)

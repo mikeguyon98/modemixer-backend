@@ -63,3 +63,8 @@ urllib3==2.2.1
 uvicorn==0.29.0
 wsproto==1.2.0
 yarl==1.9.4
+argparse
+langchain>=0.0.231
+lxml
+openai
+tiktoken

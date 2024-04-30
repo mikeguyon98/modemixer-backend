@@ -1,6 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
 import boto3
+from dotenv import load_dotenv
+import os
+import pymongo
+import datetime
+from pymongo import MongoClient
+
+load_dotenv()
+
+
+client = MongoClient(os.getenv("MONGO_URI"))
+db = client["test"]
 
 
 def get_image_urls(keyword, total_images):
@@ -35,9 +46,9 @@ def get_image_urls(keyword, total_images):
 
 def upload_image_to_s3(image_url, bucket_name):
     session = boto3.Session(
-        aws_access_key_id="AKIA2UC3EW36VE77IAOA",
-        aws_secret_access_key="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",
-        region_name="us-east-1",
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        region_name=os.getenv("AWS_REGION"),
     )
     s3 = session.client("s3")
 
@@ -46,20 +57,50 @@ def upload_image_to_s3(image_url, bucket_name):
         file_name = image_url.split("/")[-1]
         s3.upload_fileobj(response.raw, bucket_name, file_name)
         print(f"Successfully uploaded {file_name} to S3 bucket {bucket_name}")
+        # Get the public URL for the uploaded image
+        public_url = f"https://{bucket_name}.s3.amazonaws.com/{file_name}"
+        return public_url
     except Exception as e:
         print(f"Failed to upload {image_url}: {e}")
+        return None
 
 
-def main():
-    keyword = "Gigi Hadid Recent Outfit"
+def get_male_img():
+    keyword = "ryan gosling style 2024"
     total_images = 5
     bucket_name = "modemixer-images"
 
     image_urls = get_image_urls(keyword, total_images)
     for image_url in image_urls:
-        upload_image_to_s3(image_url, bucket_name)
+        s3_url = upload_image_to_s3(image_url, bucket_name)
+        document = {
+            "url": s3_url,
+            "gender": "male",
+            "created_at": datetime.datetime.now(),
+        }
+        db.FashionReference.insert_one(document)
+        print(db)
+        if db.FashionReference.find_one(document):
+            print("Document inserted successfully")
+        else:
+            print("Failed to insert document")
+
     response = requests.get(image_urls[0], stream=True)
 
 
-if __name__ == "__main__":
-    main()
+def get_female_img():
+    keyword = "sydney sweeney street style"
+    total_images = 5
+    bucket_name = "modemixer-images"
+
+    image_urls = get_image_urls(keyword, total_images)
+    for image_url in image_urls:
+        s3_url = upload_image_to_s3(image_url, bucket_name)
+        document = {
+            "url": s3_url,
+            "gender": "female",
+            "created_at": datetime.datetime.now(),
+        }
+        db.FashionReference.insert_one(document)
+
+    response = requests.get(image_urls[0], stream=True)
