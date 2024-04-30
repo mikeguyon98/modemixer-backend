@@ -46,7 +46,7 @@ vector_search = MongoDBAtlasVectorSearch.from_documents(
 #     namespace="test.vector",
 #     embedding=OpenAIEmbeddings(disallowed_special=()),
 #     index_name=vector_search_index
-# )  
+# )
 
 
 
