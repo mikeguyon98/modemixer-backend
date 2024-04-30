@@ -19,10 +19,7 @@ class ItemModel(BaseModel):
     created_at: datetime = datetime.now()
     id: Optional[str] = None
 
-class MensFashionReferences(BaseModel):
+class FashionReferences(BaseModel):
     image_url: str
     created_at: datetime = datetime.now()
-
-class WomansFashionReferences(BaseModel):
-    image_url :str
-    created_at: datetime = datetime.now()
+    gender: str = None

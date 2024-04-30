@@ -24,7 +24,7 @@ def generate_trend_summary(img_url: str, client: OpenAI = OpenAI()) -> Choice:
         resp = generate_trend_summary("https://modemixer-images.s3.amazonaws.com/testing_image.jpg")
         text = resp.message.content
     """    
-
+    print(img_url)
     response = client.chat.completions.create(
     model="gpt-4-turbo",
     messages=[

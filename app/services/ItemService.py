@@ -1,11 +1,12 @@
 from fastapi import HTTPException
 from pymongo import errors
 from bson import ObjectId
-from app.db import db
+from app.db import get_db
 
 class ItemService:
     @staticmethod
     def create_item(item_data):
+        db = get_db()
         try:
             result = db.items.insert_one(item_data)
             item_data['id'] = str(result.inserted_id)
@@ -15,6 +16,7 @@ class ItemService:
 
     @staticmethod
     def read_item_by_id(item_id):
+        db = get_db()
         item = db.items.find_one({"_id": ObjectId(item_id)})
         if not item:
             raise HTTPException(status_code=404, detail="Item not found")
@@ -23,6 +25,7 @@ class ItemService:
 
     @staticmethod
     def read_items_by_collection(collection_id):
+        db = get_db()
         items = list(db.items.find({"collection": ObjectId(collection_id)}))
         for item in items:
             item['id'] = str(item['_id'])
@@ -31,6 +34,7 @@ class ItemService:
 
     @staticmethod
     def read_all_items():
+        db = get_db()
         items = list(db.items.find())
         for item in items:
             item['id'] = str(item['_id'])
