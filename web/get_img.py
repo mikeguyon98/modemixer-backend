@@ -94,6 +94,3 @@ def get_female_img():
         db.FashionReference.insert_one(document)
 
     response = requests.get(image_urls[0], stream=True)
-
-
-get_female_img()
