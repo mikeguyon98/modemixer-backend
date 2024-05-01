@@ -1,11 +1,12 @@
 from fastapi import HTTPException
 from pymongo import errors
 from bson import ObjectId
-from app.db import db
+from app.db import get_db
 
 class CollectionService:
     @staticmethod
     def create_collection(collection_data):
+        db = get_db()
         try:
             result = db.collections.insert_one(collection_data)
             collection_data['id'] = str(result.inserted_id)
@@ -15,6 +16,7 @@ class CollectionService:
 
     @staticmethod
     def read_collection_by_id(collection_id):
+        db = get_db()
         collection = db.collections.find_one({"_id": ObjectId(collection_id)})
         if not collection:
             raise HTTPException(status_code=404, detail="Collection not found")
@@ -23,7 +25,10 @@ class CollectionService:
 
     @staticmethod
     def read_all_collections():
+        db = get_db()
+        print(db)
         collections = list(db.collections.find())
+        print(collections)
         for collection in collections:
             collection['id'] = str(collection['_id'])
         return collections
