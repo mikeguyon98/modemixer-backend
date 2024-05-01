@@ -15,31 +15,21 @@ db = client["test"]
 
 
 def get_image_urls(keyword, total_images):
+    search_url = f"https://www.bing.com/images/search?q={keyword.replace(' ', '+')}"
+    response = requests.get(search_url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, "html.parser")
+    links = soup.find_all("a", class_="iusc")
     image_urls = []
-    page = 0  # start from the first page
-    while len(image_urls) < total_images:
-        url = f"https://www.bing.com/images/async?q={keyword}&first={page}&count=35&adlt=off"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-        }
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.text, "html.parser")
-        images = soup.find_all("a", {"class": "iusc"})
 
-        if not images:
-            print("No more images found")
+    for link in links:
+        m = eval(link["m"])
+        image_url = m["murl"]
+        if image_url.startswith("https") and image_url.lower().endswith(".jpg"):
+            image_urls.append(image_url)
+
+        if len(image_urls) >= total_images:
             break
-
-        for img in images:
-            try:
-                img_url = eval(img["m"])["murl"]
-                image_urls.append(img_url)
-                if len(image_urls) >= total_images:
-                    break
-            except Exception as e:
-                print(f"Error getting image URL: {e}")
-
-        page += 35
 
     return image_urls
 
@@ -89,7 +79,7 @@ def get_male_img():
 
 
 def get_female_img():
-    keyword = "sydney sweeney street style"
+    keyword = "zendeya street style 2024"
     total_images = 5
     bucket_name = "modemixer-images"
 
@@ -104,3 +94,6 @@ def get_female_img():
         db.FashionReference.insert_one(document)
 
     response = requests.get(image_urls[0], stream=True)
+
+
+get_female_img()
