@@ -2,16 +2,14 @@
 from openai import OpenAI
 from .utils.mongo_vectorstore import MongoVectorStore
 from .utils.prompt_function import create_prompt
+from .utils.webscaper import process_and_upload_image
 import os
 client = OpenAI()
 
 class ItemGenerator:
-    def __init__(self):
-        pass
-
 
     @staticmethod
-    def generate_item_image(prompt: str) -> str:
+    def generate_item_image(prompt: str, client: OpenAI = OpenAI()) -> str:
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -19,7 +17,8 @@ class ItemGenerator:
             quality="standard",
             n=1,
         )
-        return response.data[0].url
+        url = response.data[0].url
+        return process_and_upload_image(url, "modemixer-images")
 
     @staticmethod
     def get_context(query: str, gender: str) -> tuple[str, list[str]]:
@@ -47,4 +46,4 @@ class ItemGenerator:
     
     @staticmethod
     def generate_item_description(url: str) -> str:
-        return None
+        return

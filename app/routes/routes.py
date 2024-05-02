@@ -11,6 +11,11 @@ async def create_item(item: ItemModel):
     item_dict = item.model_dump()
     return ItemService.create_item(item_dict)
 
+@router.post("/items/generate", response_model=ItemModel)
+async def generate_item(item: ItemModel):
+    item_dict = item.model_dump()
+    return ItemService.generate_new_item(item_dict)
+
 @router.get("/items", response_model=Union[List[ItemModel], ItemModel])
 async def read_item(item_id: str = Query(None, alias="item_id"), collection_id: str = Query(None, alias="collection_id")):
     if item_id:
