@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from langchain_mongodb import MongoDBAtlasVectorSearch
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 
 
 # create wrapper class for mongo vectorstore
