@@ -1,4 +1,4 @@
-from app.db import get_db
+from db import get_db
 
 def return_images_links_by_gender() -> dict:
     male_fashion_refs = []

@@ -47,5 +47,5 @@ def generate_trend_summary(img_url: str, client: OpenAI = OpenAI()) -> Choice:
 
     return response.choices[0]
 
-resp = generate_trend_summary("https://modemixer-images.s3.amazonaws.com/testing_image.jpg")
-print(resp.message.content)
+# resp = generate_trend_summary("https://modemixer-images.s3.amazonaws.com/testing_image.jpg")
+# print(resp.message.content)
