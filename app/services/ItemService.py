@@ -2,12 +2,25 @@ from fastapi import HTTPException
 from pymongo import errors
 from bson import ObjectId
 from app.db import get_db
+from app.ml.ItemGenerator import ItemGenerator
 
 class ItemService:
     @staticmethod
     def create_item(item_data):
         db = get_db()
         try:
+            result = db.items.insert_one(item_data)
+            item_data['id'] = str(result.inserted_id)
+            return item_data
+        except errors.DuplicateKeyError:
+            raise HTTPException(status_code=400, detail="Item with this title already exists")
+        
+    @staticmethod
+    def generate_new_item(item_data):
+        db = get_db()
+        try:
+            image_url, references = ItemGenerator.generate_item(item_data['description'], "male")
+            item_data["image_urls"] = [image_url] + references
             result = db.items.insert_one(item_data)
             item_data['id'] = str(result.inserted_id)
             return item_data
