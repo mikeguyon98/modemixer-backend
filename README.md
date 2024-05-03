@@ -14,6 +14,7 @@
 - [ ] Display Collections
 - [ ] Display Items
 - [ ] Create Admin portal
+    - [ ] Keep Item Description Under 450 characters
 
 ## Backend
 - [ ] Create paginated view of collections

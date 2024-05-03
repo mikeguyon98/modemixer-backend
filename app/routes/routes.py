@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 from typing import List, Union
-from app.models import ItemModel, CollectionModel
+from app.models import ItemModel, CollectionModel, ItemReference
 from app.services.ItemService import ItemService
 from app.services.CollectionService import CollectionService
 
@@ -14,7 +14,12 @@ async def create_item(item: ItemModel):
 @router.post("/items/generate", response_model=ItemModel)
 async def generate_item(item: ItemModel):
     item_dict = item.model_dump()
-    return ItemService.generate_new_item(item_dict)
+    return ItemService.generate_item(item_dict)
+
+@router.put("/items/generate", response_model=ItemModel)
+async def regenerate_item(item: ItemReference):
+    item_dict = item.model_dump()
+    return ItemService.regenerate_item(item_dict)
 
 @router.get("/items", response_model=Union[List[ItemModel], ItemModel])
 async def read_item(item_id: str = Query(None, alias="item_id"), collection_id: str = Query(None, alias="collection_id")):
