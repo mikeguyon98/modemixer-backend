@@ -10,6 +10,17 @@ class CollectionModel(BaseModel):
     created_at: datetime = datetime.now()
     id: Optional[str] = None
 
+class CollectionsItems(BaseModel):
+    collection_id: str
+    item_name: str
+    item_description: str = None
+
+class CollectionDescription(BaseModel):
+    description: str
+
+class CollectionName(BaseModel):
+    name: str
+
 class ItemModel(BaseModel):
     title: str
     description: str = None
