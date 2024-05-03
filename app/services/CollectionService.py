@@ -2,6 +2,7 @@ from fastapi import HTTPException
 from pymongo import errors
 from bson import ObjectId
 from app.db import get_db
+from ml.CollectionGenerator import CollectionGenerator
 
 class CollectionService:
     @staticmethod
@@ -13,6 +14,20 @@ class CollectionService:
             return collection_data
         except errors.DuplicateKeyError:
             raise HTTPException(status_code=400, detail="Collection with this title already exists")
+        
+    @staticmethod
+    def generate_collection_items(description):
+        try:
+            return CollectionGenerator.generate_collection_items(description)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to generate collection items: {str(e)}")
+    
+    @staticmethod
+    def generate_collection_description(collection_name):
+        try:
+            return CollectionGenerator.generate_collection_description(collection_name)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to generate collection description: {str(e)}")
 
     @staticmethod
     def read_collection_by_id(collection_id):

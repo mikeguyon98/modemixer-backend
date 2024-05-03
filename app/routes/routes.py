@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 from typing import List, Union
-from app.models import ItemModel, CollectionModel
+from app.models import *
 from app.services.ItemService import ItemService
 from app.services.CollectionService import CollectionService
 
@@ -14,7 +14,12 @@ async def create_item(item: ItemModel):
 @router.post("/items/generate", response_model=ItemModel)
 async def generate_item(item: ItemModel):
     item_dict = item.model_dump()
-    return ItemService.generate_new_item(item_dict)
+    return ItemService.generate_item(item_dict)
+
+@router.put("/items/generate", response_model=ItemModel)
+async def regenerate_item(item: ItemReference):
+    item_dict = item.model_dump()
+    return ItemService.regenerate_item(item_dict)
 
 @router.get("/items", response_model=Union[List[ItemModel], ItemModel])
 async def read_item(item_id: str = Query(None, alias="item_id"), collection_id: str = Query(None, alias="collection_id")):
@@ -29,6 +34,16 @@ async def read_item(item_id: str = Query(None, alias="item_id"), collection_id: 
 async def create_collection(collection: CollectionModel):
     collection_dict = collection.model_dump()
     return CollectionService.create_collection(collection_dict)
+
+@router.post("/collections/generate_items", response_model=List[CollectionsItems])
+async def generate_collection_items(collection: CollectionModel):
+    collection_dict = collection.model_dump()
+    return CollectionService.generate_collection_items(collection_dict.get("description"))
+
+@router.post("/collections/generate_collection_description", response_model=CollectionDescription)
+async def generate_collection_description(collection: CollectionName):
+    collection_dict = collection.model_dump()
+    return CollectionService.generate_collection_description(collection_dict.get("name"))
 
 @router.get("/collections", response_model=Union[List[CollectionModel], CollectionModel])
 async def read_collection(collection_id: str = Query(None, alias="collection_id")):

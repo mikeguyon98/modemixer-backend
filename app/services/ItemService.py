@@ -16,17 +16,30 @@ class ItemService:
             raise HTTPException(status_code=400, detail="Item with this title already exists")
         
     @staticmethod
-    def generate_new_item(item_data):
+    def generate_item(item_data):
         db = get_db()
+        gender = "female" if item_data["womanswear"] else "male"
         try:
-            image_url, references = ItemGenerator.generate_item(item_data['description'], "male")
+            image_url, references = ItemGenerator.generate_item(item_data['description'], gender)
             item_data["image_urls"] = [image_url] + references
             result = db.items.insert_one(item_data)
             item_data['id'] = str(result.inserted_id)
             return item_data
         except errors.DuplicateKeyError:
             raise HTTPException(status_code=400, detail="Item with this title already exists")
-
+    
+    @staticmethod
+    def regenerate_item(item_data):
+        db = get_db()
+        item = db.items.find_one({"_id": ObjectId(item_data['id'])})
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        gender = "female" if item_data["womanswear"] else "male"
+        new_image_url, references = ItemGenerator.generate_item(item_data['description'], gender)
+        item_data["image_urls"] = [new_image_url] + references
+        db.items.update_one({"_id": ObjectId(item_data['id'])}, {"$set": item_data})
+        return item_data
+            
     @staticmethod
     def read_item_by_id(item_id):
         db = get_db()
