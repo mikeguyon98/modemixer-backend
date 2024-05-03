@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from .utils.mongo_vectorstore import MongoVectorStore
 from .utils.prompt_function import create_prompt
 from .utils.webscaper import process_and_upload_image
+from .utils.dbrx_model import call_dbrx
 import os
 client = OpenAI()
 
@@ -14,7 +15,6 @@ class ItemGenerator:
         if len(prompt) > 3900:
             start = len(prompt) - 3900
             prompt = prompt[start:]
-        print("PROMPT END:")
         print(prompt[len(prompt) - 500:])
         try:
             response = client.images.generate(
@@ -83,6 +83,24 @@ class ItemGenerator:
         return (image_url, references)
     
     @staticmethod
-    def generate_item_description(item_name: str, gender) -> str:
+    def item_description_chain(item_name: str, gender: str):
+        """ Generate a description for an item based on its name and gender. """
         context, references = ItemGenerator.get_context(item_name, gender, k=2)
-        
+        system_message = {
+            "role": "system",
+            "content": ("You are a fashion designer and you are assigned with the task of designing a new "
+                        "collection for the upcoming season. The input will be the item name and the output "
+                        "will be an item description. Here are details of celebrity outfits that you can use "
+                        "as inspiration: \n\n" + context + "\n\n"
+                        "ONLY RESPOND WITH THE ITEM DESCRIPTION NOTHING ELSE! "
+                        "EXAMPLE: \n ITEM NAME: Snowfall Serenity Coat \n OUTPUT: \n Seaside Sophistication Maxi Dress "
+                        "Navy and sky blue silk-linen dress with beige lace hem. Features adjustable straps, v-neck, "
+                        "and silver waist ribbon. Perfect for elegant summer evenings.")
+        }
+        user_message = {
+            "role": "user",
+            "content": f"ITEM NAME: {item_name}"
+        }
+        messages = [system_message, user_message]
+        return call_dbrx(messages)
+    
