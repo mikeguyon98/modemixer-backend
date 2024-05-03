@@ -18,3 +18,13 @@
 
 ## Backend
 - [ ] Create paginated view of collections
+
+## Techpack Requirements:
+Complete Garmet Mockup
+Fabric Type
+Fabric Treatment
+Measurements
+Graphics
+Adornments/Hardware
+Size Quantities
+Interior Tag
