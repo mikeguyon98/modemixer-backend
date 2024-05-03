@@ -28,3 +28,12 @@ async def read_item(item_id: str = Query(None, alias="item_id"), collection_id: 
         return ItemService.read_items_by_collection(collection_id)
     else:
         return ItemService.read_all_items()
+    
+@router.delete("/items", response_model=dict)
+async def delete_item(item_id: str):
+    return ItemService.delete_item(item_id)
+
+@router.put("/items", response_model=ItemModel)
+async def update_item(item: ItemReference):
+    item_dict = item.model_dump()
+    return ItemService.update_item(item_dict)

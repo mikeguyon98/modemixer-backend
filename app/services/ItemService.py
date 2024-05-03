@@ -66,3 +66,20 @@ class ItemService:
             item['id'] = str(item['_id'])
             item['collection'] = str(item['collection'])
         return items
+    
+    @staticmethod
+    def delete_item(item_id):
+        db = get_db()
+        result = db.items.delete_one({"_id": ObjectId(item_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Item not found")
+        return {"message": "Item deleted successfully"}
+    
+    @staticmethod
+    def update_item(item_data):
+        db = get_db()
+        item = db.items.find_one({"_id": ObjectId(item_data['id'])})
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        db.items.update_one({"_id": ObjectId(item_data['id'])}, {"$set": item_data})
+        return item_data
