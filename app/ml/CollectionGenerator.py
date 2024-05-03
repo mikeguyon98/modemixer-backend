@@ -1,9 +1,10 @@
 from openai import OpenAI
+from openai import APIError, RateLimitError, OpenAIError
+from fastapi import HTTPException
 import os
-from dotenv import load_dotenv
-from db import global_init
 import random
 from .utils.dbrx_model import call_dbrx
+from .utils.webscaper import process_and_upload_image
 from .ItemGenerator import ItemGenerator
 
 
@@ -100,9 +101,42 @@ class CollectionGenerator:
         for item_name in items:
             gender_options = ["male", "female"]
             gender = random.choice(gender_options)
-            item_desc = CollectionGenerator.item_description_chain(item_name, gender)
+            item_desc = ItemGenerator.item_description_chain(item_name, gender)
             return_arr.append({
                 "item_name": item_name,
                 "item_description": item_desc
             })
         return return_arr
+    
+    @staticmethod
+    def generate_collection_image(collection_description: str, client: OpenAI = OpenAI()):
+        ''' Generate an image for a collection based on its description. '''
+        prompt = f"""CONTEXT:
+        You are a fashion designer and you are assigned with the task of designing a new collection for the upcoming season. The following is a description of the collection: \n {collection_description} \n\n. You are tasked with designing a cover image for this collection. Keep the image simple, elegant, and visually appealing. The image should capture the essence of the collection and entice customers to explore further. The image should be in a portrait orientation and should be suitable for use on a website or social media platform. \n\n DIRECTIONS: Design a cover image for the collection based on the description provided. The image should be visually appealing and should reflect the theme and style of the collection. Use a plain background and focus on the key elements of the collection. The image should be high-quality and professional. """
+        if len(prompt) > 3900:
+            start = len(prompt) - 3900
+            prompt = prompt[start:]
+        print(prompt[len(prompt) - 500:])
+        try:
+            response = client.images.generate(
+                model="dall-e-3",
+                prompt=prompt,
+                size="1024x1024",
+                quality="standard",
+                n=1,
+            )
+            url = response.data[0].url
+            return process_and_upload_image(url, "modemixer-images")
+        except RateLimitError:
+            # Handle rate limiting issue, maybe log it and retry or queue
+            raise HTTPException(status_code=429, detail="Request rate limit exceeded")
+        except APIError as e:
+            # Handle generic API errors
+            raise HTTPException(status_code=500, detail=f"OpenAI API error: {str(e)}")
+        except OpenAIError as e:
+            # Handle other OpenAI-specific errors
+            raise HTTPException(status_code=500, detail=f"OpenAI service error: {str(e)}")
+        except Exception as e:
+            # Handle unexpected errors
+            raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+

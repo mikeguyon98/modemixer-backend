@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from pymongo import errors
 from bson import ObjectId
 from app.db import get_db
-from ml.CollectionGenerator import CollectionGenerator
+from app.ml.CollectionGenerator import CollectionGenerator
 
 class CollectionService:
     @staticmethod
@@ -14,6 +14,15 @@ class CollectionService:
             return collection_data
         except errors.DuplicateKeyError:
             raise HTTPException(status_code=400, detail="Collection with this title already exists")
+        
+    @staticmethod
+    def update_collection(collection_data):
+        db = get_db()
+        collection = db.collections.find_one({"_id": ObjectId(collection_data['id'])})
+        if not collection:
+            raise HTTPException(status_code=404, detail="Collection not found")
+        db.collections.update_one({"_id": ObjectId(collection_data['id'])}, {"$set": collection_data})
+        return collection_data
         
     @staticmethod
     def generate_collection_items(description):
@@ -47,3 +56,19 @@ class CollectionService:
         for collection in collections:
             collection['id'] = str(collection['_id'])
         return collections
+
+    @staticmethod
+    def delete_collection(collection_id):
+        db = get_db()
+        result = db.collections.delete_one({"_id": ObjectId(collection_id)})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Collection not found")
+        return {"message": "Collection deleted successfully"}
+    
+    @staticmethod
+    def generate_collection_image(description):
+        try:
+            s3_url = CollectionGenerator.generate_collection_image(description)
+            return {"image_url": s3_url}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to generate collection image: {str(e)}")
