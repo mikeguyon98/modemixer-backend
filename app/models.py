@@ -17,6 +17,10 @@ class CollectionReference(BaseModel):
     created_at: datetime = datetime.now()
     id: str = None
 
+class CollectionResponse(BaseModel):
+    total_collections: int
+    collections: List[CollectionModel]
+
 class CollectionsItems(BaseModel):
     collection_id: str
     item_name: str
