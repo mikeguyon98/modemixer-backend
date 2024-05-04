@@ -36,8 +36,6 @@ def resize_image(image, max_size_mb=20):
 
 
 def search_images_bing(api_key, term, count=10):
-    print(api_key)
-    print(count)
     url = "https://api.bing.microsoft.com/v7.0/images/search"
     headers = {"Ocp-Apim-Subscription-Key": api_key}
     params = {"q": term, "imageType": "photo", "count": count}

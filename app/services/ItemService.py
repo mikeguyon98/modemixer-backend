@@ -3,6 +3,8 @@ from pymongo import errors
 from bson import ObjectId
 from app.db import get_db
 from app.ml.ItemGenerator import ItemGenerator
+from app.ml.TechpackGenerator import TechpackGenerator
+from app.ml.utils.markdown_to_pdf import upload_pdf_to_s3
 
 class ItemService:
     @staticmethod
@@ -83,3 +85,43 @@ class ItemService:
             raise HTTPException(status_code=404, detail="Item not found")
         db.items.update_one({"_id": ObjectId(item_data['id'])}, {"$set": item_data})
         return item_data
+    
+    @staticmethod
+    def generate_techpack(item_data):
+        db = get_db()
+        item = db.items.find_one({"_id": ObjectId(item_data['id'])})
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        try:
+            if len(item['image_urls']) == 0:
+                raise HTTPException(status_code=400, detail="Item does not have an image")
+            detailed_description = TechpackGenerator.image_to_description(item['image_urls'][0])
+            tech_pack_sections = [
+                "Fabric Type",
+                "Fabric Treatment",
+                "Measurements",
+                "Graphics",
+                "Adornments/Hardware",
+                "Size Quantities",
+                "Interior Tags",
+            ]
+            pdf_output = TechpackGenerator.generate_full_tech_pack(detailed_description, tech_pack_sections)
+            
+            # Assuming the PDF generation and upload function returns a URL or raises an HTTPException if failed
+            bucket_name = "modemixer-images"
+            file_name = f"tech_pack_{item_data['id']}.pdf"  # Name the file uniquely
+            pdf_url = upload_pdf_to_s3(pdf_output, bucket_name, file_name)
+
+            # Update the database with the new tech pack URL
+            updated_item = db.items.update_one(
+                {"_id": ObjectId(item_data['id'])},
+                {"$set": {"techpack_url": pdf_url}}
+            )
+            # Return the updated item data with the tech pack URL
+            updated_item_data = db.items.find_one({"_id": ObjectId(item_data['id'])})
+            if updated_item_data:
+                return updated_item_data
+            else:
+                raise HTTPException(status_code=500, detail="Failed to fetch updated item data")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to generate tech pack: {e}")

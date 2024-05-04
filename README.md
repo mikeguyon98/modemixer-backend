@@ -18,6 +18,7 @@
 
 ## Backend
 - [ ] Create paginated view of collections
+- [ ] Include wkhtmltopdf in Docker container
 
 ## Techpack Requirements:
 Complete Garmet Mockup

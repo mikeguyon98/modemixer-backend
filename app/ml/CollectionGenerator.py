@@ -116,7 +116,6 @@ class CollectionGenerator:
         if len(prompt) > 3900:
             start = len(prompt) - 3900
             prompt = prompt[start:]
-        print(prompt[len(prompt) - 500:])
         try:
             response = client.images.generate(
                 model="dall-e-3",
