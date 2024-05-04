@@ -12,7 +12,6 @@ def generate_other_image_angles(image_url: str, client: OpenAI= OpenAI()) -> str
         # Upload image to S3
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
         response = requests.get(image_url, stream=True, headers=headers)
-        print(response)
         response.raise_for_status()
         image = Image.open(response.raw)
         img_byte_arr = convert_to_jpeg(image)
@@ -20,11 +19,8 @@ def generate_other_image_angles(image_url: str, client: OpenAI= OpenAI()) -> str
         #generate random file name
         
         file_name = f"{uuid.uuid4()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
-        print(file_name)
         s3_url = upload_image_to_s3(img_byte_arr, "modemixer-images", file_name)
         if s3_url:
-            print("====PRINTING S3 URL====")
-            print(s3_url)
             description = image_to_description(s3_url, client)
         else:
             raise Exception("Failed to upload image to S3")
@@ -61,6 +57,4 @@ def image_to_description(img_url: str, client: OpenAI= OpenAI()) -> str:
     ],
     max_tokens=300,
     )
-    print(type(response.choices[0]))
-
     return response.choices[0]

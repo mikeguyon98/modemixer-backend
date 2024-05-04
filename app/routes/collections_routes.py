@@ -42,7 +42,6 @@ async def read_collection(
     if collection_id:
         return CollectionService.read_collection_by_id(collection_id)
     else:
-        print(limit)
         result = CollectionService.read_all_collections(limit=limit, offset=offset)
         total_collections = CollectionService.get_total_collections_count()  # New line
         return {"total_collections": total_collections, "collections": result}

@@ -15,6 +15,11 @@ async def generate_item(item: ItemModel):
     item_dict = item.model_dump()
     return ItemService.generate_item(item_dict)
 
+@router.put("/items/generate_techpack", response_model=ItemModel)
+async def generate_techpack(item: ItemReference):
+    item_dict = item.model_dump()
+    return ItemService.generate_techpack(item_dict)
+
 @router.put("/items/generate", response_model=ItemModel)
 async def regenerate_item(item: ItemReference):
     item_dict = item.model_dump()
