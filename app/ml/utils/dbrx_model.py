@@ -11,7 +11,7 @@ def call_dbrx(messages: List[Dict[str, Any]]) -> str:
     chat_completion = client.chat.completions.create(
     messages=messages,
     model="databricks-dbrx-instruct",
-    max_tokens=256
+    max_tokens=1000,
     )
             
     return chat_completion.choices[0].message.content

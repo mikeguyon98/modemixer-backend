@@ -48,16 +48,6 @@ class CollectionService:
         return collection
 
     @staticmethod
-    def read_all_collections():
-        db = get_db()
-        print(db)
-        collections = list(db.collections.find())
-        print(collections)
-        for collection in collections:
-            collection['id'] = str(collection['_id'])
-        return collections
-
-    @staticmethod
     def delete_collection(collection_id):
         db = get_db()
         result = db.collections.delete_one({"_id": ObjectId(collection_id)})
@@ -72,3 +62,16 @@ class CollectionService:
             return {"image_url": s3_url}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to generate collection image: {str(e)}")
+        
+    @staticmethod
+    def get_total_collections_count():
+        db = get_db()
+        return db.collections.count_documents({})
+    
+    @staticmethod
+    def read_all_collections(limit: int = 10, offset: int = 0):
+        db = get_db()
+        collections = list(db.collections.find().sort([("created_at", -1)]).skip(offset).limit(limit))
+        for collection in collections:
+            collection['id'] = str(collection['_id'])
+        return collections
