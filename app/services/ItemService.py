@@ -120,7 +120,7 @@ class ItemService:
             # Return the updated item data with the tech pack URL
             updated_item_data = db.items.find_one({"_id": ObjectId(item_data['id'])})
             if updated_item_data:
-                return updated_item_data
+                updated_item_data["id"] = str(updated_item_data["_id"])
             else:
                 raise HTTPException(status_code=500, detail="Failed to fetch updated item data")
         except Exception as e:
