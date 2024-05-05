@@ -17,7 +17,7 @@
     - [ ] Keep Item Description Under 450 characters
 
 ## Backend
-- [ ] Create paginated view of collections
+- [X] Create paginated view of collections
 - [ ] Include wkhtmltopdf in Docker container
 
 ## Techpack Requirements:

@@ -28,6 +28,11 @@ async def generate_collection_items(collection: CollectionModel):
     collection_dict = collection.model_dump()
     return CollectionService.generate_collection_items(collection_dict.get("description"))
 
+@router.post("/collections/generate_collection", response_model=CollectionReference)
+async def generate_collection(collection: CollectionModel):
+    collection_dict = collection.model_dump()
+    return CollectionService.generate_collection(collection_dict)
+
 @router.post("/collections/generate_collection_description", response_model=CollectionDescription)
 async def generate_collection_description(collection: CollectionName):
     collection_dict = collection.model_dump()
