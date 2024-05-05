@@ -95,23 +95,7 @@ class ItemService:
         try:
             if len(item['image_urls']) == 0:
                 raise HTTPException(status_code=400, detail="Item does not have an image")
-            detailed_description = TechpackGenerator.image_to_description(item['image_urls'][0])
-            tech_pack_sections = [
-                "Fabric Type",
-                "Fabric Treatment",
-                "Measurements",
-                "Graphics",
-                "Adornments/Hardware",
-                "Size Quantities",
-                "Interior Tags",
-            ]
-            pdf_output = TechpackGenerator.generate_full_tech_pack(detailed_description, tech_pack_sections)
-            
-            # Assuming the PDF generation and upload function returns a URL or raises an HTTPException if failed
-            bucket_name = "modemixer-images"
-            file_name = f"tech_pack_{item_data['id']}.pdf"  # Name the file uniquely
-            pdf_url = upload_pdf_to_s3(pdf_output, bucket_name, file_name)
-
+            pdf_url = TechpackGenerator.generate_techpack_url(item['image_urls'][0])
             # Update the database with the new tech pack URL
             updated_item = db.items.update_one(
                 {"_id": ObjectId(item_data['id'])},

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, BackgroundTasks
 from typing import List, Union
 from app.models import CollectionModel, CollectionReference, CollectionName, CollectionsItems, CollectionDescription, CollectionResponse
 from app.services.CollectionService import CollectionService
@@ -29,9 +29,18 @@ async def generate_collection_items(collection: CollectionModel):
     return CollectionService.generate_collection_items(collection_dict.get("description"))
 
 @router.post("/collections/generate_collection", response_model=CollectionReference)
-async def generate_collection(collection: CollectionModel):
+async def generate_collection(collection: CollectionModel, background_tasks: BackgroundTasks):
     collection_dict = collection.model_dump()
-    return CollectionService.generate_collection(collection_dict)
+    created_collection = CollectionService.generate_collection(collection_dict)
+    
+    # Queue the background task to process items
+    background_tasks.add_task(CollectionService.generate_collection_items_in_background, created_collection['id'])
+
+    return created_collection
+
+@router.get("/collections/{collection_id}/status")
+async def check_collection_status(collection_id: str):
+    return CollectionService.check_collection_status(collection_id)
 
 @router.post("/collections/generate_collection_description", response_model=CollectionDescription)
 async def generate_collection_description(collection: CollectionName):

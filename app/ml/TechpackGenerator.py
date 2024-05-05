@@ -1,7 +1,7 @@
 from typing import List, Dict
 from openai import OpenAI
 import concurrent.futures
-from .utils.markdown_to_pdf import markdown_dict_to_pdf
+from .utils.markdown_to_pdf import markdown_dict_to_pdf, upload_pdf_to_s3
 
 class TechpackGenerator:
     @staticmethod
@@ -57,3 +57,28 @@ class TechpackGenerator:
                     print(f"Exception occurred while processing section {section}: {exc}")
         tech_pack_pdf = markdown_dict_to_pdf(tech_pack, sections)
         return tech_pack_pdf
+    
+    @staticmethod
+    def generate_techpack_url(item_image_url):
+        try:
+            detailed_description = TechpackGenerator.image_to_description(item_image_url)
+            tech_pack_sections = [
+                "Fabric Type",
+                "Fabric Treatment",
+                "Measurements",
+                "Graphics",
+                "Adornments/Hardware",
+                "Size Quantities",
+                "Interior Tags",
+            ]
+            pdf_output = TechpackGenerator.generate_full_tech_pack(detailed_description, tech_pack_sections)
+            
+            # Assuming the PDF generation and upload function returns a URL or raises an HTTPException if failed
+            unique_name = item_image_url.split("/")[-1].split(".")[0]
+            bucket_name = "modemixer-images"
+            file_name = f"tech_pack_{unique_name}.pdf"  # Name the file uniquely
+            pdf_url = upload_pdf_to_s3(pdf_output, bucket_name, file_name)
+        except Exception as e:
+            print(f"Failed to generate tech pack: {e}")
+            pdf_url = None
+        return pdf_url
