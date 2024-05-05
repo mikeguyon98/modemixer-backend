@@ -5,6 +5,8 @@ import random
 from datetime import datetime
 from app.db import get_db
 from app.ml.CollectionGenerator import CollectionGenerator
+from app.ml.TechpackGenerator import TechpackGenerator
+from app.ml.ItemGenerator import ItemGenerator
 
 class CollectionService:
     @staticmethod
@@ -58,23 +60,36 @@ class CollectionService:
             collection_data['image_url'] = s3_url
             result = db.collections.insert_one(collection_data)
             collection_data['id'] = str(result.inserted_id)
-            collection_items = CollectionGenerator.generate_full_collection(collection_data['description'])
-            for item in collection_items:
-                item['collection'] = ObjectId(collection_data['id'])
-                db.items.insert_one({
-                    "name": item['name'],
-                    "description": item['description'],
-                    "image_urls": [],
-                    "collection": item['collection'],
-                    "womanwear": random.choice([True, False]),
-                    "created_at": datetime.now(),
-                    "techpack_url": None
-                })
-            return collection_data   
+            return collection_data
         except errors.DuplicateKeyError:
             raise HTTPException(status_code=400, detail="Collection with this title already exists")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to generate collection: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to create collection: {str(e)}")
+
+    @staticmethod
+    def generate_collection_items_in_background(collection_id):
+        db = get_db()
+        try:
+            collection = db.collections.find_one({"_id": ObjectId(collection_id)})
+            if not collection:
+                raise HTTPException(status_code=404, detail="Collection not found")
+            
+            collection_items = CollectionGenerator.generate_full_collection(collection['description'])
+            for item in collection_items:
+                item['collection'] = ObjectId(collection_id)
+                item_image, references = ItemGenerator.generate_item(item['item_description'], gender="female" if item['womanswear'] else "male")
+                techpack_url = TechpackGenerator.generate_techpack_url(item_image)
+                db.items.insert_one({
+                    "title": item['item_name'],
+                    "description": item['item_description'],
+                    "image_urls": [item_image] + references,
+                    "collection": item['collection'],
+                    "womanswear": item['womanswear'],
+                    "created_at": datetime.now(),
+                    "techpack_url": techpack_url
+                })
+        except Exception as e:
+            print(f"Error generating items for collection {collection_id}: {str(e)}")
 
     @staticmethod
     def delete_collection(collection_id):
@@ -104,3 +119,14 @@ class CollectionService:
         for collection in collections:
             collection['id'] = str(collection['_id'])
         return collections
+    
+    @staticmethod
+    def check_collection_status(collection_id):
+        db = get_db()
+        collection = db.collections.find_one({"_id": ObjectId(collection_id)})
+        if not collection:
+            raise HTTPException(status_code=404, detail="Collection not found")
+        
+        # Fetch count of items belonging to this collection
+        item_count = db.items.count_documents({"collection": ObjectId(collection_id)})
+        return {"collection_id": collection_id, "status": "in-progress", "items_processed": item_count}

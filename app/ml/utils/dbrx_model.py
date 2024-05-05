@@ -15,3 +15,13 @@ def call_dbrx(messages: List[Dict[str, Any]]) -> str:
         )
             
     return chat_completion.choices[0].message.content
+
+def call_gpt_4_turbo(messages: List[Dict[str, Any]]) -> str:
+    client = OpenAI()
+    chat_completion = client.chat.completions.create(
+        messages=messages,
+        model="gpt-4-turbo",
+        max_tokens=1000,
+        )
+            
+    return chat_completion.choices[0].message.content

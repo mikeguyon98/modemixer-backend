@@ -3,7 +3,7 @@ from openai import APIError, RateLimitError, OpenAIError
 from fastapi import HTTPException
 import os
 import random
-from .utils.dbrx_model import call_dbrx
+from .utils.dbrx_model import call_dbrx, call_gpt_4_turbo
 from .utils.webscaper import process_and_upload_image
 from .ItemGenerator import ItemGenerator
 
@@ -43,7 +43,7 @@ class CollectionGenerator:
                 "content": f"COLLECTION NAME: {collection_name}"
             }
         ]
-        result = call_dbrx(messages)
+        result = call_gpt_4_turbo(messages)
         return result.split(", ")
     
     @staticmethod
@@ -104,7 +104,8 @@ class CollectionGenerator:
             item_desc = ItemGenerator.item_description_chain(item_name, gender)
             return_arr.append({
                 "item_name": item_name,
-                "item_description": item_desc
+                "item_description": item_desc,
+                "womanswear": True if gender == "female" else False
             })
         return return_arr
     
