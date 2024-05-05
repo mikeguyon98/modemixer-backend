@@ -1,6 +1,8 @@
 from fastapi import HTTPException
 from pymongo import errors
 from bson import ObjectId
+import random
+from datetime import datetime
 from app.db import get_db
 from app.ml.CollectionGenerator import CollectionGenerator
 
@@ -34,7 +36,8 @@ class CollectionService:
     @staticmethod
     def generate_collection_description(collection_name):
         try:
-            return CollectionGenerator.generate_collection_description(collection_name)
+            collection_name =  CollectionGenerator.generate_collection_description(collection_name)
+            return {"description": collection_name}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to generate collection description: {str(e)}")
 
@@ -46,6 +49,32 @@ class CollectionService:
             raise HTTPException(status_code=404, detail="Collection not found")
         collection['id'] = str(collection['_id'])
         return collection
+    
+    @staticmethod
+    def generate_collection(collection_data):
+        db = get_db()
+        try:
+            s3_url = CollectionGenerator.generate_collection_image(collection_data['description'])
+            collection_data['image_url'] = s3_url
+            result = db.collections.insert_one(collection_data)
+            collection_data['id'] = str(result.inserted_id)
+            collection_items = CollectionGenerator.generate_full_collection(collection_data['description'])
+            for item in collection_items:
+                item['collection'] = ObjectId(collection_data['id'])
+                db.items.insert_one({
+                    "name": item['name'],
+                    "description": item['description'],
+                    "image_urls": [],
+                    "collection": item['collection'],
+                    "womanwear": random.choice([True, False]),
+                    "created_at": datetime.now(),
+                    "techpack_url": None
+                })
+            return collection_data   
+        except errors.DuplicateKeyError:
+            raise HTTPException(status_code=400, detail="Collection with this title already exists")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to generate collection: {str(e)}")
 
     @staticmethod
     def delete_collection(collection_id):
