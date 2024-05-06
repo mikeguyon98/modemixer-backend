@@ -34,13 +34,23 @@ class ItemService:
     def regenerate_item(item_data):
         db = get_db()
         item = db.items.find_one({"_id": ObjectId(item_data['id'])})
+        print(item)
         if not item:
             raise HTTPException(status_code=404, detail="Item not found")
         gender = "female" if item_data["womanswear"] else "male"
         new_image_url, references = ItemGenerator.generate_item(item_data['description'], gender)
         item_data["image_urls"] = [new_image_url] + references
-        db.items.update_one({"_id": ObjectId(item_data['id'])}, {"$set": item_data})
-        return item_data
+        item["image_urls"] = item_data["image_urls"]
+        item["description"] = item_data["description"]
+        item["title"] = item_data["title"]
+        item["womanswear"] = item_data["womanswear"]
+        item["techpack_url"] = ""
+        item["created_at"] = item_data["created_at"]
+        db.items.update_one({"_id": ObjectId(item_data['id'])}, {"$set": item})
+        item['id'] = str(item['_id'])
+        item["_id"] = str(item["_id"])
+        item['collection'] = str(item['collection'])
+        return item
             
     @staticmethod
     def read_item_by_id(item_id):
@@ -107,6 +117,9 @@ class ItemService:
             updated_item_data = db.items.find_one({"_id": ObjectId(item_data['id'])})
             if updated_item_data:
                 updated_item_data["id"] = str(updated_item_data["_id"])
+                updated_item_data["_id"] = str(updated_item_data["_id"])
+                updated_item_data["collection"] = str(updated_item_data["collection"])
+                return updated_item_data
             else:
                 raise HTTPException(status_code=500, detail="Failed to fetch updated item data")
         except Exception as e:

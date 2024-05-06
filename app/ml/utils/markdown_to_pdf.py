@@ -2,6 +2,7 @@ from io import BytesIO
 import markdown
 import pdfkit
 import boto3
+import urllib.parse
 import os
 
 def markdown_dict_to_pdf(markdown_dict, sections):
@@ -34,9 +35,10 @@ def upload_pdf_to_s3(pdf_byte_stream, bucket_name, file_name):
         # Ensure the stream is at the beginning
         pdf_byte_stream.seek(0)
         s3.upload_fileobj(pdf_byte_stream, bucket_name, file_name)
-        print(f"Successfully uploaded {file_name} to S3 bucket {bucket_name}")
+        encoded_file_name = urllib.parse.quote(file_name)
+        print(f"Successfully uploaded {encoded_file_name} to S3 bucket {bucket_name}")
         # Generate the public URL for the uploaded PDF
-        public_url = f"https://{bucket_name}.s3.amazonaws.com/{file_name}"
+        public_url = f"https://{bucket_name}.s3.amazonaws.com/{encoded_file_name}"
         return public_url
     except Exception as e:
         print(f"Failed to upload {file_name}: {e}")
