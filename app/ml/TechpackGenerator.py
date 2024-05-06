@@ -1,5 +1,6 @@
 from typing import List, Dict
 from openai import OpenAI
+from datetime import datetime
 import concurrent.futures
 from .utils.markdown_to_pdf import markdown_dict_to_pdf, upload_pdf_to_s3
 
@@ -74,7 +75,7 @@ class TechpackGenerator:
             pdf_output = TechpackGenerator.generate_full_tech_pack(detailed_description, tech_pack_sections)
             
             # Assuming the PDF generation and upload function returns a URL or raises an HTTPException if failed
-            unique_name = item_image_url.split("/")[-1].split(".")[0]
+            unique_name = datetime.now().strftime("%Y%m%d%H%M%S")
             bucket_name = "modemixer-images"
             file_name = f"tech_pack_{unique_name}.pdf"  # Name the file uniquely
             pdf_url = upload_pdf_to_s3(pdf_output, bucket_name, file_name)

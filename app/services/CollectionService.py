@@ -78,7 +78,6 @@ class CollectionService:
             for item in collection_items:
                 item['collection'] = ObjectId(collection_id)
                 item_image, references = ItemGenerator.generate_item(item['item_description'], gender="female" if item['womanswear'] else "male")
-                techpack_url = TechpackGenerator.generate_techpack_url(item_image)
                 db.items.insert_one({
                     "title": item['item_name'],
                     "description": item['item_description'],
@@ -86,7 +85,7 @@ class CollectionService:
                     "collection": item['collection'],
                     "womanswear": item['womanswear'],
                     "created_at": datetime.now(),
-                    "techpack_url": techpack_url
+                    "techpack_url": ""
                 })
         except Exception as e:
             print(f"Error generating items for collection {collection_id}: {str(e)}")
