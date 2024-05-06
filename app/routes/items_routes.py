@@ -39,10 +39,6 @@ async def read_item(item_id: str = Query(None, alias="item_id"), collection_id: 
     else:
         return ItemService.read_all_items()
     
-
-@router.get("/items/{item_id}", response_model=ItemModel)
-async def read_item(item_id: str):
-    return ItemService.read_item_by_id(item_id)
     
 @router.delete("/items", response_model=dict)
 async def delete_item(item_id: str):
