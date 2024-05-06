@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from .utils.mongo_vectorstore import MongoVectorStore
 from .utils.prompt_function import create_prompt
 from .utils.webscaper import process_and_upload_image
-from .utils.dbrx_model import call_dbrx
+from .utils.dbrx_model import call_dbrx, call_gpt_4_turbo
 import os
 client = OpenAI()
 
@@ -83,7 +83,7 @@ class ItemGenerator:
         return (image_url, references)
     
     @staticmethod
-    def item_description_chain(item_name: str, gender: str):
+    def item_description_chain(item_name: str, gender: str, collection_description: str = "") -> str:
         """ Generate a description for an item based on its name and gender. """
         context, references = ItemGenerator.get_context(item_name, gender, k=2)
         system_message = {
@@ -92,6 +92,7 @@ class ItemGenerator:
                         "collection for the upcoming season. The input will be the item name and the output "
                         "will be an item description. Here are details of celebrity outfits that you can use "
                         "as inspiration: \n\n" + context + "\n\n"
+                        "Here is the collection description: \n" + collection_description + "\n\n"
                         "ONLY RESPOND WITH THE ITEM DESCRIPTION NOTHING ELSE! "
                         "EXAMPLE: \n ITEM NAME: Snowfall Serenity Coat \n OUTPUT: \n Seaside Sophistication Maxi Dress "
                         "Navy and sky blue silk-linen dress with beige lace hem. Features adjustable straps, v-neck, "
@@ -102,5 +103,5 @@ class ItemGenerator:
             "content": f"ITEM NAME: {item_name}"
         }
         messages = [system_message, user_message]
-        return call_dbrx(messages)
+        return call_gpt_4_turbo(messages)
     

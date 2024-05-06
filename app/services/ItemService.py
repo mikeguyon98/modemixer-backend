@@ -49,6 +49,8 @@ class ItemService:
         if not item:
             raise HTTPException(status_code=404, detail="Item not found")
         item['id'] = str(item['_id'])
+        item["_id"] = str(item["_id"])
+        item['collection'] = str(item['collection'])
         return item
 
     @staticmethod
@@ -109,3 +111,17 @@ class ItemService:
                 raise HTTPException(status_code=500, detail="Failed to fetch updated item data")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to generate tech pack: {e}")
+        
+    @staticmethod
+    def generate_description(collection_id, item_name, item_womanswear):
+        db = get_db()
+        collection = db.collections.find_one({"_id": ObjectId(collection_id)})
+        gender = "womanswear" if item_womanswear else "menswear"
+        if not collection:
+            raise HTTPException(status_code=404, detail="Collection not found")
+        try:
+            item_description = ItemGenerator.item_description_chain(item_name, gender, collection["description"])
+            return {"description": item_description}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to generate item description: {e}")
+        

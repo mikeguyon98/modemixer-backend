@@ -43,6 +43,9 @@ class ItemModel(BaseModel):
     techpack_url: Optional[str] = None
     id: Optional[str] = None
 
+class ItemDescription(BaseModel):
+    description: str
+
 class ItemReference(BaseModel):
     title: str
     description: str = None

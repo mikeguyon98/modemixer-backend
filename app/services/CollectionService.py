@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from pymongo import errors
+from pymongo import errors, DESCENDING
 from bson import ObjectId
 import random
 from datetime import datetime
@@ -115,7 +115,9 @@ class CollectionService:
     @staticmethod
     def read_all_collections(limit: int = 10, offset: int = 0):
         db = get_db()
-        collections = list(db.collections.find().sort([("created_at", -1)]).skip(offset).limit(limit))
+        print()
+        collections = list(db.collections.find().sort([("created_at", DESCENDING)]).skip(offset).limit(limit))
+        print(collections)
         for collection in collections:
             collection['id'] = str(collection['_id'])
         return collections
