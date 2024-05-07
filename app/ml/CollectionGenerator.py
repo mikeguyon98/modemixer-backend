@@ -3,7 +3,7 @@ from openai import APIError, RateLimitError, OpenAIError
 from fastapi import HTTPException
 import os
 import random
-from .utils.dbrx_model import call_dbrx, call_gpt_4_turbo
+from .utils.models import call_dbrx, call_gpt_4_turbo
 from .utils.webscaper import process_and_upload_image
 from .ItemGenerator import ItemGenerator
 

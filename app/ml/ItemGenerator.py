@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from .utils.mongo_vectorstore import MongoVectorStore
 from .utils.prompt_function import create_prompt
 from .utils.webscaper import process_and_upload_image
-from .utils.dbrx_model import call_dbrx, call_gpt_4_turbo
+from .utils.models import call_dbrx, call_gpt_4_turbo
 import os
 client = OpenAI()
 
