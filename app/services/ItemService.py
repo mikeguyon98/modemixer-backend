@@ -38,6 +38,7 @@ class ItemService:
         if not item:
             raise HTTPException(status_code=404, detail="Item not found")
         gender = "female" if item_data["womanswear"] else "male"
+        print(gender)
         new_image_url, references = ItemGenerator.generate_item(item_data['description'], gender)
         item_data["image_urls"] = [new_image_url] + references
         item["image_urls"] = item_data["image_urls"]
