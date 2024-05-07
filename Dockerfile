@@ -1,3 +1,4 @@
+# Dockerfile
 FROM python:3.10-slim-buster
 
 # Set the working directory in the container to /app
@@ -17,8 +18,7 @@ RUN apt-get update && apt-get install -y \
 # Download wkhtmltopdf from the provided link
 RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.buster_amd64.deb
 
-# Install wkhtmltopdf
-# Ensure that missing dependencies are automatically installed
+# Install wkhtmltopdf and ensure missing dependencies are automatically installed
 RUN dpkg -i wkhtmltox_0.12.6-1.buster_amd64.deb; apt-get install -f -y
 
 # Clean up unnecessary files and clear the apt cache to reduce image size
@@ -27,8 +27,8 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/* /wkhtmltox_0.12.6-1.buster_amd6
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Make port 80 available to the world outside this container
+# Make port 8000 available to the world outside this container
 EXPOSE 8000
 
-# Define the command to run the application using uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Define the command to run the application using uvicorn with the $PORT environment variable
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
