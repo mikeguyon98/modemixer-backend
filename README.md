@@ -1,8 +1,5 @@
 # ModeMixer Backend
 
-
-# ModeMixer Backend
-
 The **ModeMixer Backend** provides a FastAPI-based RESTful API that serves as the backbone for the ModeMixer web application. It powers AI-driven fashion design pipelines by interacting with OpenAI models, MongoDB, and other components.
 
 
