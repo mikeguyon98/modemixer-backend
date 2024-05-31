@@ -1,20 +1,20 @@
 # app/models.py
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 
 class CollectionModel(BaseModel):
     name: str
     description: str = None
     image_url: str = None
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     id: Optional[str] = None
 
 class CollectionReference(BaseModel):
     name: str
     description: str = None
     image_url: str = None
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     id: str = None
 
 class CollectionResponse(BaseModel):
@@ -39,7 +39,7 @@ class ItemModel(BaseModel):
     womanswear: bool = True
     image_urls: List[str] = []
     collection: str = None
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     techpack_url: Optional[str] = None
     id: Optional[str] = None
 
@@ -53,11 +53,11 @@ class ItemReference(BaseModel):
     womanswear: bool = True
     image_urls: List[str] = []
     collection: str = None
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     techpack_url: Optional[str] = None
     id: str = None
 
 class FashionReferences(BaseModel):
     image_url: str
-    created_at: datetime = datetime.now()
+    created_at: datetime = Field(default_factory=datetime.now)
     gender: str = None

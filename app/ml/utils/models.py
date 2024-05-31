@@ -18,10 +18,6 @@ def call_dbrx(messages: List[Dict[str, Any]]) -> str:
 
 def call_gpt_4_turbo(messages: List[Dict[str, Any]]) -> str:
     client = openai.OpenAI()
-    openai.api_type = "azure"
-    openai.api_base = os.getenv("OPENAI_API_BASE")
-    openai.api_version = "2024-02-01"
-    openai.api_key = os.getenv("OPENAI_API_KEY")
     chat_completion = client.chat.completions.create(
         messages=messages,
         model="gpt-4-turbo",
