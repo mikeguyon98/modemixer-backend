@@ -86,6 +86,26 @@ def upload_image_to_s3(img_byte_arr, bucket_name, file_name):
     except Exception as e:
         print(f"Failed to upload {file_name}: {e}")
         return None
+    
+def upload_image_to_s3_v2(img_byte_arr, bucket_name, file_name):
+    session = boto3.Session(
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        region_name=os.getenv("AWS_REGION"),
+    )
+    s3 = session.client("s3")
+    
+    try:
+        s3.upload_fileobj(io.BytesIO(img_byte_arr), bucket_name, file_name)
+        print(f"Successfully uploaded {file_name} to S3 bucket {bucket_name}")
+        # Get the public URL for the uploaded image, ensuring the file name is URL-encoded
+        encoded_file_name = urllib.parse.quote(file_name)
+        public_url = f"https://{bucket_name}.s3.amazonaws.com/{encoded_file_name}"
+        print(public_url)
+        return public_url
+    except Exception as e:
+        print(f"Failed to upload {file_name}: {e}")
+        return None
 
 
 def process_and_upload_image(image_url, bucket_name):

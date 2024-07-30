@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, File, UploadFile
 from typing import List, Union
 from app.models import ItemModel, ItemReference, ItemDescription
 from app.services.ItemService import ItemService
@@ -39,7 +39,6 @@ async def read_item(item_id: str = Query(None, alias="item_id"), collection_id: 
     else:
         return ItemService.read_all_items()
     
-    
 @router.delete("/items", response_model=dict)
 async def delete_item(item_id: str):
     return ItemService.delete_item(item_id)
@@ -48,3 +47,7 @@ async def delete_item(item_id: str):
 async def update_item(item: ItemReference):
     item_dict = item.model_dump()
     return ItemService.update_item(item_dict)
+
+@router.post("/item_tryon")
+async def predict(image1: UploadFile = File(...), image2: UploadFile = File(...)):
+    return await ItemService.try_on(image1, image2)
