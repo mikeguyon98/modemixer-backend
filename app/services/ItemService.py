@@ -1,4 +1,6 @@
 from fastapi import HTTPException
+import os
+from app.ml.utils.webscaper import process_and_upload_image
 from pymongo import errors
 from bson import ObjectId
 from app.db import get_db
@@ -159,7 +161,10 @@ class ItemService:
                 False,  # bool in 'customized model' Checkbox component
                 fn_index=2
             )
-            return result
+
+            s3_url = process_and_upload_image(result, "modemixer-images")
+            return s3_url
+
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to save uploaded files: {e}")
         
