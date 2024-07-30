@@ -5,6 +5,7 @@ from app.db import get_db
 from app.ml.ItemGenerator import ItemGenerator
 from app.ml.TechpackGenerator import TechpackGenerator
 from app.ml.utils.markdown_to_pdf import upload_pdf_to_s3
+from gradio_client import Client
 
 class ItemService:
     @staticmethod
@@ -138,4 +139,27 @@ class ItemService:
             return {"description": item_description}
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to generate item description: {e}")
+        
+    @staticmethod
+    async def try_on(model, item, client = Client("https://stablevitot2gnp9xcvf-ee8c628e9032b48c.tec-s10.onthetaedgecloud.com/")):
+        try:
+            # Save uploaded files temporarily
+            model_path = f"./temp_{model.filename}"
+            item_path = f"./temp_{item.filename}"
+            
+            with open(model_path, "wb") as f1:
+                f1.write(await model.read())
+            
+            with open(item_path, "wb") as f2:
+                f2.write(await item.read())
+            result = client.predict(
+                model_path,  # str (filepath or URL to image)in 'Model' Image component
+                item_path,  # str (filepath or URL to image)in 'Garment' Image component
+                10,  # int | float (numeric value between 10 and 50)in 'Steps' Slider component
+                False,  # bool in 'customized model' Checkbox component
+                fn_index=2
+            )
+            return result
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to save uploaded files: {e}")
         
