@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, File, UploadFile
+from fastapi import APIRouter, Query, File, UploadFile, Form
 from typing import List, Union
 from app.models import ItemModel, ItemReference, ItemDescription
 from app.services.ItemService import ItemService
@@ -49,5 +49,5 @@ async def update_item(item: ItemReference):
     return ItemService.update_item(item_dict)
 
 @router.post("/item_tryon")
-async def predict(image1: UploadFile = File(...), image2: UploadFile = File(...)):
+async def predict(image1: UploadFile = File(...), image2: str = Form(...)):
     return await ItemService.try_on(image1, image2)
