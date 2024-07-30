@@ -1,12 +1,11 @@
 from fastapi import HTTPException
 import os
-from app.ml.utils.webscaper import process_and_upload_image
+from app.ml.utils.webscaper import upload_image_to_s3_v2
 from pymongo import errors
 from bson import ObjectId
 from app.db import get_db
 from app.ml.ItemGenerator import ItemGenerator
 from app.ml.TechpackGenerator import TechpackGenerator
-from app.ml.utils.markdown_to_pdf import upload_pdf_to_s3
 from gradio_client import Client
 
 class ItemService:
@@ -161,8 +160,15 @@ class ItemService:
                 False,  # bool in 'customized model' Checkbox component
                 fn_index=2
             )
-
-            s3_url = process_and_upload_image(result, "modemixer-images")
+            s3_url = ""
+            with open(result, "rb") as result_image_file:
+                try:
+                    img_byte_arr = result_image_file.read()
+                    print(img_byte_arr)
+                    s3_url = upload_image_to_s3_v2(img_byte_arr, "modemixer-images", os.path.basename(result))
+                    print(s3_url)
+                except Exception as e:
+                    raise HTTPException(status_code=500, detail=f"Failed to save uploaded files: {e}")
             return s3_url
 
         except Exception as e:
