@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+import aiohttp
 import os
 from app.ml.utils.webscaper import upload_image_to_s3_v2
 from pymongo import errors
@@ -142,35 +143,45 @@ class ItemService:
             raise HTTPException(status_code=500, detail=f"Failed to generate item description: {e}")
         
     @staticmethod
-    async def try_on(model, item, client = Client("https://stablevitot2gnp9xcvf-ee8c628e9032b48c.tec-s10.onthetaedgecloud.com/")):
+    async def try_on(model, item_url: str, client = Client("https://stablevitot2gnp9xcvf-ee8c628e9032b48c.tec-s10.onthetaedgecloud.com/")):
         try:
-            # Save uploaded files temporarily
+            # Save uploaded model temporarily
             model_path = f"./temp_{model.filename}"
-            item_path = f"./temp_{item.filename}"
-            
             with open(model_path, "wb") as f1:
                 f1.write(await model.read())
-            
-            with open(item_path, "wb") as f2:
-                f2.write(await item.read())
-            result = client.predict(
-                model_path,  # str (filepath or URL to image)in 'Model' Image component
-                item_path,  # str (filepath or URL to image)in 'Garment' Image component
-                10,  # int | float (numeric value between 10 and 50)in 'Steps' Slider component
-                False,  # bool in 'customized model' Checkbox component
-                fn_index=2
-            )
-            s3_url = ""
-            with open(result, "rb") as result_image_file:
-                try:
-                    img_byte_arr = result_image_file.read()
-                    print(img_byte_arr)
-                    s3_url = upload_image_to_s3_v2(img_byte_arr, "modemixer-images", os.path.basename(result))
-                    print(s3_url)
-                except Exception as e:
-                    raise HTTPException(status_code=500, detail=f"Failed to save uploaded files: {e}")
-            return s3_url
 
+            # Download the item image from the S3 URL
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(item_url) as response:
+                        if response.status != 200:
+                            raise HTTPException(status_code=404, detail="Image not found")
+                        item_data = await response.read()
+                        item_path = f"./temp_item_image"
+                        with open(item_path, "wb") as f2:
+                            f2.write(item_data)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Error downloading image: {str(e)}")
+            # Make the prediction using the client
+            try:
+                result = client.predict(
+                    model_path,  # str (filepath or URL to image) in 'Model' Image component
+                    item_path,   # str (filepath or URL to image) in 'Garment' Image component
+                    10,          # int | float (numeric value between 10 and 50) in 'Steps' Slider component
+                    False,       # bool in 'customized model' Checkbox component
+                    fn_index=2
+                )
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
+            # Upload the result to S3
+            s3_url = ""
+            try:
+                with open(result, "rb") as result_image_file:
+                    img_byte_arr = result_image_file.read()
+                    s3_url = upload_image_to_s3_v2(img_byte_arr, "modemixer-images", os.path.basename(result))
+                os.remove(item_path)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to upload result to S3: {str(e)}")
+            return s3_url
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to save uploaded files: {e}")
-        
+            raise HTTPException(status_code=500, detail=f"Failed to process images: {str(e)}")
